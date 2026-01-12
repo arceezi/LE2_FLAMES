@@ -43,11 +43,13 @@
             <div class="field">
               <label for="bday1">Your Birthday</label>
               <input type="date" id="bday1" name="bday1" required />
+              <input type="text" id="bday1-text" class="date-text" placeholder="YYYY-MM-DD" inputmode="numeric" pattern="\d{4}-\d{2}-\d{2}" title="Type date in YYYY-MM-DD format" data-sync-date="bday1" />
             </div>
 
             <div class="field">
               <label for="bday2">Partner's Birthday</label>
               <input type="date" id="bday2" name="bday2" required />
+              <input type="text" id="bday2-text" class="date-text" placeholder="YYYY-MM-DD" inputmode="numeric" pattern="\d{4}-\d{2}-\d{2}" title="Type date in YYYY-MM-DD format" data-sync-date="bday2" />
             </div>
           </div>
 
@@ -144,9 +146,47 @@
       return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
+    function isValidDateString(value) {
+      return /^\d{4}-\d{2}-\d{2}$/.test(value);
+    }
+
+    function syncDateInputs() {
+      document.querySelectorAll('[data-sync-date]').forEach((textInput) => {
+        const dateInput = document.getElementById(textInput.dataset.syncDate);
+        if (!dateInput) return;
+
+        const updateText = () => {
+          textInput.value = dateInput.value;
+        };
+
+        const updateDate = () => {
+          if (!textInput.value) {
+            dateInput.value = '';
+            return;
+          }
+          if (isValidDateString(textInput.value)) {
+            dateInput.value = textInput.value;
+          }
+        };
+
+        dateInput.addEventListener('input', updateText);
+        textInput.addEventListener('input', updateDate);
+        updateText();
+      });
+    }
+
+    syncDateInputs();
+
     document.getElementById('flames-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const form = e.target;
+      document.querySelectorAll('[data-sync-date]').forEach((textInput) => {
+        const dateInput = document.getElementById(textInput.dataset.syncDate);
+        if (!dateInput || dateInput.value) return;
+        if (isValidDateString(textInput.value)) {
+          dateInput.value = textInput.value;
+        }
+      });
       const fd = new FormData(form);
       const json = await postForm(fd);
       renderResult(json);
