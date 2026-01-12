@@ -176,33 +176,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// If this is an AJAX / fetch POST, respond with JSON instead of full HTML.
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    header('Content-Type: application/json; charset=utf-8');
-    $response = [
-        'errors' => $errors,
-        'result' => $result,
-    ];
-    echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+header('Content-Type: application/json; charset=utf-8');
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    echo json_encode([
+        'errors' => ['This endpoint accepts POST requests from the form in index.html.'],
+        'result' => null,
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
 
-// If someone visits the PHP endpoint via GET, show a small informational message.
-?><!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>LE2 FLAMES Endpoint</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <main class="container">
-    <section class="card">
-      <h1>FLAMES Endpoint</h1>
-      <p>This endpoint expects a POST request (fields: <b>name1</b>, <b>bday1</b>, <b>name2</b>, <b>bday2</b>) and returns JSON.</p>
-      <p>Open <a href="index.html">index.html</a> to use the form UI.</p>
-    </section>
-  </main>
-</body>
-</html>
+$response = [
+    'errors' => $errors,
+    'result' => $result,
+];
+
+echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

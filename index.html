@@ -3,68 +3,82 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LE2 FLAMES App</title>
+  <title>FLAMES</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main class="container">
-    <header class="header">
-      <h1>FLAMES Compatibility Form</h1>
-      <p class="subtitle">Enter two names and birthdays. The page will show each zodiac sign and the FLAMES result.</p>
-    </header>
+  <header class="site-header">
+    <div class="nav-wrap">
+      <div class="logo" aria-label="Flames">FLAMES</div>
+      <nav class="nav">
+        <a href="#home">Home</a>
+        <a href="#about">About</a>
+        <a href="#calculator">Calculator</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
 
-    <section class="card">
-      <h2 class="card-title">Input</h2>
+  <main id="home" class="page">
+    <section class="hero" aria-hidden="true"></section>
 
-      <p class="hint">This form submits to the PHP endpoint and displays results below without leaving this page.</p>
+    <section id="calculator" class="form-section">
+      <div class="form-card">
+        <h1 class="form-title">Calculate Compatibility</h1>
+        <p class="form-subtitle">Enter both names and birthdays to reveal zodiac signs and FLAMES result.</p>
 
-      <div id="errors" class="alert alert-error" style="display:none"></div>
+        <div id="errors" class="alert alert-error" hidden></div>
 
-      <form id="flames-form" class="form">
-        <div class="grid">
-          <div class="field">
-            <label for="name1">Name 1</label>
-            <input type="text" id="name1" name="name1" placeholder="e.g., Rodrigo" required />
+        <form id="flames-form" class="form">
+          <div class="field-grid">
+            <div class="field">
+              <label for="name1">Your Name</label>
+              <input type="text" id="name1" name="name1" placeholder="Your Name" required />
+            </div>
+
+            <div class="field">
+              <label for="name2">Partner's Name</label>
+              <input type="text" id="name2" name="name2" placeholder="Partner's Name" required />
+            </div>
+
+            <div class="field">
+              <label for="bday1">Your Birthday</label>
+              <input type="date" id="bday1" name="bday1" required />
+            </div>
+
+            <div class="field">
+              <label for="bday2">Partner's Birthday</label>
+              <input type="date" id="bday2" name="bday2" required />
+            </div>
           </div>
 
-          <div class="field">
-            <label for="bday1">Birthday 1</label>
-            <input type="date" id="bday1" name="bday1" required />
-          </div>
-
-          <div class="field">
-            <label for="name2">Name 2</label>
-            <input type="text" id="name2" name="name2" placeholder="e.g., Bong" required />
-          </div>
-
-          <div class="field">
-            <label for="bday2">Birthday 2</label>
-            <input type="date" id="bday2" name="bday2" required />
-          </div>
-        </div>
-
-        <div class="actions">
-          <button class="btn" type="submit">Compute</button>
-          <button class="btn btn-secondary" type="button" id="resetBtn">Reset</button>
-        </div>
-      </form>
-    </section>
-
-    <section class="card" id="outputSection">
-      <h2 class="card-title">Output</h2>
-      <div id="output">
-        <p class="empty">No result yet. Fill out the form above and click <b>Compute</b>.</p>
+          <button class="cta" type="submit">Calculate Compatibility</button>
+        </form>
       </div>
     </section>
 
-    <footer class="footer">
-      <p>Tip: For your submission, screenshot the form, then screenshot a sample computed output (with the details shown).</p>
-    </footer>
+    <section class="output" aria-live="polite">
+      <div id="output" class="output-card">
+        <p class="empty">No result yet. Fill out the form above and click <b>Calculate Compatibility</b>.</p>
+      </div>
+    </section>
   </main>
 
+  <footer id="contact" class="site-footer">
+    <div class="socials" aria-label="Social links">
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+    </div>
+    <p>Copyright © FLAMES. All rights reserved.</p>
+  </footer>
+
   <script>
+    const endpoint = 'LE2_ZabalaRC.php';
+
     async function postForm(formData) {
-      const res = await fetch('LE2_ZabalaRC.php', {
+      const res = await fetch(endpoint, {
         method: 'POST',
         body: formData,
       });
@@ -73,14 +87,15 @@
 
     function renderResult(data) {
       const out = document.getElementById('output');
+      const errorsBox = document.getElementById('errors');
       if (data.errors && data.errors.length) {
-        document.getElementById('errors').style.display = 'block';
-        document.getElementById('errors').innerHTML = '<ul>' + data.errors.map(e => '<li>' + e + '</li>').join('') + '</ul>';
+        errorsBox.hidden = false;
+        errorsBox.innerHTML = '<ul>' + data.errors.map(e => '<li>' + e + '</li>').join('') + '</ul>';
         out.innerHTML = '';
         return;
       }
 
-      document.getElementById('errors').style.display = 'none';
+      errorsBox.hidden = true;
       const r = data.result;
       if (!r) {
         out.innerHTML = '<p class="empty">No result returned.</p>';
@@ -136,12 +151,6 @@
       const fd = new FormData(form);
       const json = await postForm(fd);
       renderResult(json);
-    });
-
-    document.getElementById('resetBtn').addEventListener('click', () => {
-      document.getElementById('flames-form').reset();
-      document.getElementById('output').innerHTML = '<p class="empty">No result yet. Fill out the form above and click <b>Compute</b>.</p>';
-      document.getElementById('errors').style.display = 'none';
     });
   </script>
 </body>
