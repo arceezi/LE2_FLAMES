@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LE2 FLAMES App</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="container">
+    <header class="header">
+      <h1>FLAMES Compatibility Form</h1>
+      <p class="subtitle">Enter two names and birthdays. The page will show each zodiac sign and the FLAMES result.</p>
+    </header>
+
+    <section class="card">
+      <h2 class="card-title">Input</h2>
+
+      <p class="hint">This form submits to the PHP endpoint and displays results below without leaving this page.</p>
+
+      <div id="errors" class="alert alert-error" style="display:none"></div>
+
+      <form id="flames-form" class="form">
+        <div class="grid">
+          <div class="field">
+            <label for="name1">Name 1</label>
+            <input type="text" id="name1" name="name1" placeholder="e.g., Rodrigo" required />
+          </div>
+
+          <div class="field">
+            <label for="bday1">Birthday 1</label>
+            <input type="date" id="bday1" name="bday1" required />
+          </div>
+
+          <div class="field">
+            <label for="name2">Name 2</label>
+            <input type="text" id="name2" name="name2" placeholder="e.g., Bong" required />
+          </div>
+
+          <div class="field">
+            <label for="bday2">Birthday 2</label>
+            <input type="date" id="bday2" name="bday2" required />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn" type="submit">Compute</button>
+          <button class="btn btn-secondary" type="button" id="resetBtn">Reset</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card" id="outputSection">
+      <h2 class="card-title">Output</h2>
+      <div id="output">
+        <p class="empty">No result yet. Fill out the form above and click <b>Compute</b>.</p>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p>Tip: For your submission, screenshot the form, then screenshot a sample computed output (with the details shown).</p>
+    </footer>
+  </main>
+
+  <script>
+    async function postForm(formData) {
+      const res = await fetch('LE2_ZabalaRC.php', {
+        method: 'POST',
+        body: formData,
+      });
+      return res.json();
+    }
+
+    function renderResult(data) {
+      const out = document.getElementById('output');
+      if (data.errors && data.errors.length) {
+        document.getElementById('errors').style.display = 'block';
+        document.getElementById('errors').innerHTML = '<ul>' + data.errors.map(e => '<li>' + e + '</li>').join('') + '</ul>';
+        out.innerHTML = '';
+        return;
+      }
+
+      document.getElementById('errors').style.display = 'none';
+      const r = data.result;
+      if (!r) {
+        out.innerHTML = '<p class="empty">No result returned.</p>';
+        return;
+      }
+
+      const f = r.flames;
+      const commonList = (f.commonLetters && f.commonLetters.length) ? f.commonLetters.join(', ') : 'None';
+
+      out.innerHTML = `
+        <div class="result-grid">
+          <div class="result-box">
+            <h3>${escapeHtml(r.name1)}</h3>
+            <p><b>Birthday:</b> ${escapeHtml(r.bday1)}</p>
+            <p><b>Zodiac:</b> ${escapeHtml(r.zodiac1)}</p>
+          </div>
+
+          <div class="result-box">
+            <h3>${escapeHtml(r.name2)}</h3>
+            <p><b>Birthday:</b> ${escapeHtml(r.bday2)}</p>
+            <p><b>Zodiac:</b> ${escapeHtml(r.zodiac2)}</p>
+          </div>
+        </div>
+
+        <div class="compatibility">
+          <h3 class="compat-title">Compatibility Result</h3>
+          <p class="compat-text">${escapeHtml(r.name1)} and ${escapeHtml(r.name2)} are <b>${escapeHtml(f.flamesMeaning)}</b>.</p>
+
+          <div class="details">
+            <h4>Computation Details</h4>
+            <ul>
+              <li><b>Common letters:</b> ${escapeHtml(commonList)}</li>
+              <li><b>${escapeHtml(r.name1)}</b> common-letter count: ${Number(f.count1)}</li>
+              <li><b>${escapeHtml(r.name2)}</b> common-letter count: ${Number(f.count2)}</li>
+              <li><b>Total:</b> ${Number(f.total)}</li>
+              <li><b>Total mod 6:</b> ${Number(f.remainder)}</li>
+              <li><b>FLAMES letter:</b> ${escapeHtml(f.flamesLetter)}</li>
+            </ul>
+            <p class="note">Mapping: F = Friends, L = Lovers, A = Anger, M = Married, E = Engaged, S = Soulmates</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function escapeHtml(s) {
+      if (!s && s !== 0) return '';
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    document.getElementById('flames-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const fd = new FormData(form);
+      const json = await postForm(fd);
+      renderResult(json);
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      document.getElementById('flames-form').reset();
+      document.getElementById('output').innerHTML = '<p class="empty">No result yet. Fill out the form above and click <b>Compute</b>.</p>';
+      document.getElementById('errors').style.display = 'none';
+    });
+  </script>
+</body>
+</html>

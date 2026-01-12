@@ -1,2 +1,2 @@
-# LE2_FLAMES
+# FLAMES
 PHP
